@@ -90,13 +90,13 @@ public class PositionSongPlayer extends RangeSongPlayer {
 			channelMode.play(player, targetLocation, song, layer, note, soundCategory, volume, !enable10Octave);
 
 			if (isInRange(player)) {
-				if (!playerList.get(player.getUniqueId())) {
-					playerList.put(player.getUniqueId(), true);
+				if (!playerList.get(player.getName())) {
+					playerList.put(player.getName(), true);
 					Bukkit.getPluginManager().callEvent(new PlayerRangeStateChangeEvent(this, player, true));
 				}
 			} else {
-				if (playerList.get(player.getUniqueId())) {
-					playerList.put(player.getUniqueId(), false);
+				if (playerList.get(player.getName())) {
+					playerList.put(player.getName(), false);
 					Bukkit.getPluginManager().callEvent(new PlayerRangeStateChangeEvent(this, player, false));
 				}
 			}

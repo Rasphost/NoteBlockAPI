@@ -30,7 +30,7 @@ public abstract class SongPlayer {
 	protected boolean playing = false;
 	protected boolean fading = false;
 	protected short tick = -1;
-	protected Map<UUID, Boolean> playerList = new ConcurrentHashMap<UUID, Boolean>();
+	protected Map<String, Boolean> playerList = new ConcurrentHashMap<String, Boolean>();
 
 	protected boolean autoDestroy = false;
 	protected boolean destroyed = false;
@@ -161,10 +161,10 @@ public abstract class SongPlayer {
 				tick = (short) value;
 				break;
 			case "addplayer":
-				addPlayer(((Player) value).getUniqueId(), false);
+				addPlayer(((Player) value).getName(), false);
 				break;
 			case "removeplayer":
-				removePlayer(((Player) value).getUniqueId(), false);
+				removePlayer(((Player) value).getName(), false);
 				break;
 			case "autoDestroy":
 				autoDestroy = (boolean) value;
@@ -433,8 +433,8 @@ public abstract class SongPlayer {
 						
 						plugin.doSync(() -> {
 							try {
-								for (UUID uuid : playerList.keySet()) {
-									Player player = Bukkit.getPlayer(uuid);
+								for (String uuid : playerList.keySet()) {
+									Player player = Bukkit.getPlayerExact(uuid);
 									if (player == null) {
 										// offline...
 										continue;
@@ -511,8 +511,8 @@ public abstract class SongPlayer {
 	 * Gets list of current Player UUIDs listening to this SongPlayer
 	 * @return list of Player UUIDs
 	 */
-	public Set<UUID> getPlayerUUIDs() {
-		Set<UUID> uuids = new HashSet<>();
+	public Set<String> getPlayerUUIDs() {
+		Set<String> uuids = new HashSet<>();
 		uuids.addAll(playerList.keySet());
 		return Collections.unmodifiableSet(uuids);
 	}
@@ -522,18 +522,18 @@ public abstract class SongPlayer {
 	 * @param player
 	 */
 	public void addPlayer(Player player) {
-		addPlayer(player.getUniqueId());
+		addPlayer(player.getName());
 	}
 	
 	/**
 	 * Adds a Player to the list of Players listening to this SongPlayer
 	 * @param player's uuid
 	 */
-	public void addPlayer(UUID player) {
+	public void addPlayer(String player) {
 		addPlayer(player, true);
 	}
 	
-	private void addPlayer(UUID player, boolean notify){
+	private void addPlayer(String player, boolean notify){
 		lock.lock();
 		try {
 			if (!playerList.containsKey(player)) {
@@ -683,18 +683,18 @@ public abstract class SongPlayer {
 	 * @param player to remove
 	 */
 	public void removePlayer(Player player) {
-		removePlayer(player.getUniqueId());
+		removePlayer(player.getName());
 	}
 	
 	/**
 	 * Removes a player from this SongPlayer
 	 * @param uuid of player to remove
 	 */
-	public void removePlayer(UUID uuid) {
+	public void removePlayer(String uuid) {
 		removePlayer(uuid, true);
 	}
 	
-	private void removePlayer(UUID player, boolean notify) {
+	private void removePlayer(String player, boolean notify) {
 		lock.lock();
 		try {
 			if (notify){

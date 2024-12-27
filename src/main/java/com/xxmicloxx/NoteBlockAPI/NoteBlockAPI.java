@@ -1,17 +1,13 @@
 package com.xxmicloxx.NoteBlockAPI;
 
 import com.xxmicloxx.NoteBlockAPI.songplayer.SongPlayer;
-import com.xxmicloxx.NoteBlockAPI.utils.MathUtils;
 import com.xxmicloxx.NoteBlockAPI.utils.Updater;
-import org.bstats.bukkit.Metrics;
-import org.bstats.charts.DrilldownPie;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredListener;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.scheduler.BukkitWorker;
 
 import java.io.IOException;
@@ -27,8 +23,8 @@ public class NoteBlockAPI extends JavaPlugin {
 
 	private static NoteBlockAPI plugin;
 	
-	private Map<UUID, ArrayList<SongPlayer>> playingSongs = new ConcurrentHashMap<UUID, ArrayList<SongPlayer>>();
-	private Map<UUID, Byte> playerVolume = new ConcurrentHashMap<UUID, Byte>();
+	private Map<String, ArrayList<SongPlayer>> playingSongs = new ConcurrentHashMap<String, ArrayList<SongPlayer>>();
+	private Map<String, Byte> playerVolume = new ConcurrentHashMap<String, Byte>();
 
 	private boolean disabling = false;
 	
@@ -58,14 +54,14 @@ public class NoteBlockAPI extends JavaPlugin {
 	 * @param player
 	 */
 	public static void stopPlaying(Player player) {
-		stopPlaying(player.getUniqueId());
+		stopPlaying(player.getName());
 	}
 
 	/**
 	 * Stops the song for a Player
 	 * @param uuid
 	 */
-	public static void stopPlaying(UUID uuid) {
+	public static void stopPlaying(String uuid) {
 		ArrayList<SongPlayer> songs = plugin.playingSongs.get(uuid);
 		if (songs == null) {
 			return;
@@ -81,7 +77,7 @@ public class NoteBlockAPI extends JavaPlugin {
 	 * @param volume
 	 */
 	public static void setPlayerVolume(Player player, byte volume) {
-		setPlayerVolume(player.getUniqueId(), volume);
+		setPlayerVolume(player.getName(), volume);
 	}
 
 	/**
@@ -89,7 +85,7 @@ public class NoteBlockAPI extends JavaPlugin {
 	 * @param uuid
 	 * @param volume
 	 */
-	public static void setPlayerVolume(UUID uuid, byte volume) {
+	public static void setPlayerVolume(String uuid, byte volume) {
 		plugin.playerVolume.put(uuid, volume);
 	}
 
@@ -99,7 +95,7 @@ public class NoteBlockAPI extends JavaPlugin {
 	 * @return volume (byte)
 	 */
 	public static byte getPlayerVolume(Player player) {
-		return getPlayerVolume(player.getUniqueId());
+		return getPlayerVolume(player.getName());
 	}
 
 	/**
@@ -107,7 +103,7 @@ public class NoteBlockAPI extends JavaPlugin {
 	 * @param uuid
 	 * @return volume (byte)
 	 */
-	public static byte getPlayerVolume(UUID uuid) {
+	public static byte getPlayerVolume(String uuid) {
 		Byte byteObj = plugin.playerVolume.get(uuid);
 		if (byteObj == null) {
 			byteObj = 100;
@@ -117,18 +113,18 @@ public class NoteBlockAPI extends JavaPlugin {
 	}
 	
 	public static ArrayList<SongPlayer> getSongPlayersByPlayer(Player player){
-		return getSongPlayersByPlayer(player.getUniqueId());
+		return getSongPlayersByPlayer(player.getName());
 	}
 	
-	public static ArrayList<SongPlayer> getSongPlayersByPlayer(UUID player){
+	public static ArrayList<SongPlayer> getSongPlayersByPlayer(String player){
 		return plugin.playingSongs.get(player);
 	}
 	
 	public static void setSongPlayersByPlayer(Player player, ArrayList<SongPlayer> songs){
-		setSongPlayersByPlayer(player.getUniqueId(), songs);
+		setSongPlayersByPlayer(player.getName(), songs);
 	}
 	
-	public static void setSongPlayersByPlayer(UUID player, ArrayList<SongPlayer> songs){
+	public static void setSongPlayersByPlayer(String player, ArrayList<SongPlayer> songs){
 		plugin.playingSongs.put(player, songs);
 	}
 
@@ -137,12 +133,16 @@ public class NoteBlockAPI extends JavaPlugin {
 		plugin = this;
 		
 		for (Plugin pl : getServer().getPluginManager().getPlugins()){
-			if (pl.getDescription().getDepend().contains("NoteBlockAPI") || pl.getDescription().getSoftDepend().contains("NoteBlockAPI")){
+			if (
+					(pl.getDescription().getDepend() != null && pl.getDescription().getDepend().contains("NoteBlockAPI"))
+					||
+					(pl.getDescription().getSoftDepend() != null && pl.getDescription().getSoftDepend().contains("NoteBlockAPI"))
+			)
+			{
 				dependentPlugins.put(pl, false);
 			}
 		}
-		
-		Metrics metrics = new Metrics(this, 1083);
+
 		
 		
 		new NoteBlockPlayerMain().onEnable();
@@ -172,17 +172,6 @@ public class NoteBlockAPI extends JavaPlugin {
 
 		            }
 		        }
-		        
-		        metrics.addCustomChart(new DrilldownPie("deprecated", () -> {
-			        Map<String, Map<String, Integer>> map = new HashMap<>();
-			        for (Plugin pl : dependentPlugins.keySet()){
-			        	String deprecated = dependentPlugins.get(pl) ? "yes" : "no";
-			        	Map<String, Integer> entry = new HashMap<>();
-				        entry.put(pl.getDescription().getFullName(), 1);
-				        map.put(deprecated, entry);
-			        }
-			        return map;
-			    }));
 			}
 		}, 1);
 		

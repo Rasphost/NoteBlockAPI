@@ -94,13 +94,13 @@ public class NoteBlockSongPlayer extends RangeSongPlayer {
             channelMode.play(player, loc, song, layer, note, soundCategory, volume, !enable10Octave);
 
 			if (isInRange(player)) {
-				if (!this.playerList.get(player.getUniqueId())) {
-					playerList.put(player.getUniqueId(), true);
+				if (!this.playerList.get(player.getName())) {
+					playerList.put(player.getName(), true);
 					Bukkit.getPluginManager().callEvent(new PlayerRangeStateChangeEvent(this, player, true));
 				}
 			} else {
-				if (this.playerList.get(player.getUniqueId())) {
-					playerList.put(player.getUniqueId(), false);
+				if (this.playerList.get(player.getName())) {
+					playerList.put(player.getName(), false);
 					Bukkit.getPluginManager().callEvent(new PlayerRangeStateChangeEvent(this, player, false));
 				}
 			}
